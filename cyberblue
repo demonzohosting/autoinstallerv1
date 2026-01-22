@@ -1,0 +1,64 @@
+#!/bin/bash
+clear
+
+echo "======================================="
+echo " PTERODACTYL CYBER BLUE THEME INSTALLER "
+echo " SVG LOGO + LOADING + HOVER EFFECT      "
+echo "======================================="
+
+APP_FILE="/var/www/pterodactyl/resources/views/layouts/app.blade.php"
+BACKUP_FILE="$APP_FILE.backup_$(date +%F_%H-%M-%S)"
+
+if [ ! -f "$APP_FILE" ]; then
+    echo "[ERROR] app.blade.php tidak ditemukan!"
+    exit 1
+fi
+
+echo "[INFO] Backup file..."
+cp $APP_FILE $BACKUP_FILE
+
+echo "[INFO] Injecting theme..."
+
+sed -i "/<\/head>/i \
+<!-- CYBER BLUE THEME INJECT -->\
+<style>\
+:root{--cyber-blue:#00eaff;--cyber-glow:#00bfff;--dark-bg:#05080f;--card-bg:rgba(10,15,30,0.92);}\
+body{background:radial-gradient(circle at top,#061a2b,#02040a);font-family:'Inter',sans-serif;}\
+#panel-loader{position:fixed;inset:0;background:#02040a;z-index:9999;display:flex;align-items:center;justify-content:center;}\
+.loader-ring{width:90px;height:90px;border:4px solid rgba(0,234,255,0.2);border-top:4px solid var(--cyber-blue);border-radius:50%;animation:spin 1s linear infinite;box-shadow:0 0 30px var(--cyber-blue);}\
+@keyframes spin{100%{transform:rotate(360deg)}}\
+nav{background:linear-gradient(90deg,#020814,#061a2b)!important;border-bottom:2px solid var(--cyber-blue);box-shadow:0 0 25px rgba(0,234,255,0.6);}\
+.navbar-brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:800;color:var(--cyber-blue)!important;text-shadow:0 0 12px var(--cyber-glow);}\
+.navbar-brand svg{width:34px;height:34px;filter:drop-shadow(0 0 10px var(--cyber-blue));animation:logoPulse 2s infinite;}\
+@keyframes logoPulse{0%{filter:drop-shadow(0 0 6px var(--cyber-blue))}50%{filter:drop-shadow(0 0 20px var(--cyber-glow))}100%{filter:drop-shadow(0 0 6px var(--cyber-blue))}}\
+.bg-white,.shadow,.rounded{background:var(--card-bg)!important;border-radius:18px!important;border:1px solid rgba(0,234,255,0.35);transition:all .35s ease;}\
+.bg-white:hover,.shadow:hover{transform:translateY(-8px) scale(1.03);box-shadow:0 0 35px rgba(0,234,255,.8);}\
+button,.btn{background:linear-gradient(135deg,var(--cyber-blue),var(--cyber-glow))!important;border:none!important;color:#001019!important;font-weight:700;border-radius:14px;transition:all .3s ease;box-shadow:0 0 20px rgba(0,234,255,.7);}\
+button:hover,.btn:hover{transform:scale(1.1);box-shadow:0 0 40px rgba(0,234,255,1);}\
+[data-server]{background:rgba(5,10,25,.95)!important;border:1px solid rgba(0,234,255,.45);border-radius:16px;transition:all .3s ease;}\
+[data-server]:hover{transform:scale(1.02);box-shadow:0 0 45px rgba(0,234,255,.9);}\
+h1,h2,h3,h4,h5,p,span{color:#e9faff!important;}\
+.text-green-500{color:#00ffcc!important;text-shadow:0 0 12px #00ffcc;}\
+.text-red-500{color:#ff3b6b!important;text-shadow:0 0 12px #ff3b6b;}\
+input,select,textarea{background:#040a18!important;border:1px solid var(--cyber-blue)!important;color:#fff!important;border-radius:12px;}\
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:linear-gradient(var(--cyber-blue),var(--cyber-glow));border-radius:10px}\
+</style>\
+<div id=\"panel-loader\"><div class=\"loader-ring\"></div></div>\
+<script>window.addEventListener('load',()=>{document.getElementById('panel-loader').style.display='none'});</script>\
+<script>document.querySelectorAll('.navbar-brand').forEach(el=>{el.insertAdjacentHTML('afterbegin',`<svg viewBox='0 0 24 24' fill='none'><path d='M3 12L12 3L21 12L12 21L3 12Z' stroke='#00eaff' stroke-width='2'/><circle cx='12' cy='12' r='3' stroke='#00eaff' stroke-width='2'/></svg>`);});</script>\
+<!-- END CYBER THEME -->\
+<\/head>" "$APP_FILE"
+
+echo "[INFO] Clearing cache..."
+cd /var/www/pterodactyl || exit
+php artisan view:clear
+php artisan optimize:clear
+
+echo "[INFO] Restarting services..."
+systemctl restart pteroq
+
+echo "======================================="
+echo " CYBER BLUE THEME BERHASIL TERPASANG 🔥 "
+echo " Backup: $BACKUP_FILE"
+echo "======================================="
+
