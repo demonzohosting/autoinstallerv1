@@ -1,0 +1,46 @@
+#!/bin/bash
+clear
+
+echo "========================================"
+echo " PTERODACTYL CYBER BLUE THEME UNINSTALL "
+echo "========================================"
+
+APP_FILE="/var/www/pterodactyl/resources/views/layouts/app.blade.php"
+BACKUP_FILE=$(ls -t /var/www/pterodactyl/resources/views/layouts/app.blade.php.backup_* 2>/dev/null | head -n 1)
+
+if [ ! -f "$APP_FILE" ]; then
+    echo "[ERROR] app.blade.php tidak ditemukan!"
+    exit 1
+fi
+
+if [ -z "$BACKUP_FILE" ]; then
+    echo "[ERROR] Backup tidak ditemukan!"
+    echo "Tidak bisa restore otomatis."
+    exit 1
+fi
+
+echo "[INFO] Backup ditemukan:"
+echo "$BACKUP_FILE"
+
+read -p "Lanjutkan restore? (y/n): " confirm
+if [[ "$confirm" != "y" ]]; then
+    echo "[CANCEL] Uninstall dibatalkan."
+    exit 0
+fi
+
+echo "[INFO] Restore file asli..."
+cp "$BACKUP_FILE" "$APP_FILE"
+
+echo "[INFO] Clear cache..."
+cd /var/www/pterodactyl || exit
+php artisan view:clear
+php artisan optimize:clear
+
+echo "[INFO] Restart service..."
+systemctl restart pteroq
+
+echo "========================================"
+echo " THEME BERHASIL DIUNINSTALL ✅"
+echo " Panel kembali ke default"
+echo "========================================"
+
